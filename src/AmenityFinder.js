@@ -1,11 +1,35 @@
 import { LitElement, html, css } from 'lit';
+import page from 'page';
 
-const logo = new URL('../assets/open-wc-logo.svg', import.meta.url).href;
+import '@material/mwc-drawer';
+import '@material/mwc-top-app-bar';
+import '@material/mwc-list/mwc-list.js';
+import '@material/mwc-list/mwc-check-list-item.js';
+import '@material/mwc-icon-button';
+
+import './views/HomeView.js';
+import './views/SearchView.js';
+import './views/ResultsView.js';
 
 export class AmenityFinder extends LitElement {
+  constructor() {
+    super();
+    this.showSidebar = false;
+    this.currentView = 'home';
+    this.views = {
+      home: html`<home-view></home-view>`,
+      search: html`<search-view></search-view>`,
+      results: html`<results-view></results-view>`,
+    };
+
+    this._initializeRoutes();
+  }
+
   static get properties() {
     return {
-      title: { type: String },
+      showSidebar: { type: Boolean },
+      currentView: { type: String },
+      views: { type: Object },
     };
   }
 
@@ -13,78 +37,84 @@ export class AmenityFinder extends LitElement {
     return css`
       :host {
         min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        font-size: calc(10px + 2vmin);
-        color: #1a2b42;
-        max-width: 960px;
-        margin: 0 auto;
-        text-align: center;
-        background-color: var(--amenity-finder-background-color);
       }
 
       main {
-        flex-grow: 1;
-      }
-
-      .logo {
-        margin-top: 36px;
-        animation: app-logo-spin infinite 20s linear;
-      }
-
-      @keyframes app-logo-spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      .app-footer {
-        font-size: calc(12px + 0.5vmin);
-        align-items: center;
-      }
-
-      .app-footer a {
-        margin-left: 5px;
+        padding: var(--amenity-container-padding, 1rem);
       }
     `;
   }
 
-  constructor() {
-    super();
-    this.title = 'My app';
+  _navigateTo(view) {
+    this.currentView = view;
+    this.showSidebar = false;
+  }
+
+  _renderCurrentView() {
+    return this.views[this.currentView];
+  }
+
+  _initializeRoutes() {
+    page('/', () => {
+      this.currentView = 'home';
+    });
+    page('/results', () => {
+      this.currentView = 'results';
+    });
+    page('/search', () => {
+      this.currentView = 'search';
+    });
+    page();
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  _navigateToUrl(url) {
+    page(url);
+    this._closeSidebar();
+  }
+
+  _closeSidebar() {
+    this.showSidebar = false;
   }
 
   render() {
     return html`
-      <main>
-        <div class="logo"><img alt="open-wc logo" src=${logo} /></div>
-        <h1>${this.title}</h1>
-
-        <p>Edit <code>src/AmenityFinder.js</code> and save to reload.</p>
-        <a
-          class="app-link"
-          href="https://open-wc.org/guides/developing-components/code-examples/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Code examples
-        </a>
-      </main>
-
-      <p class="app-footer">
-        🚽 Made with love by
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://github.com/open-wc"
-          >open-wc</a
-        >.
-      </p>
+      <mwc-drawer
+        hasHeader
+        type="modal"
+        .open="${this.showSidebar}"
+        @MDCDrawer:closed="${() => {
+          this._closeSidebar();
+        }}"
+      >
+        <span slot="title">Navigation</span>
+        <mwc-list>
+          <mwc-list-item @click="${() => this._navigateToUrl('/')}"
+            >Home</mwc-list-item
+          >
+          <mwc-list-item @click="${() => this._navigateToUrl('/search')}"
+            >Search</mwc-list-item
+          >
+          <mwc-list-item @click="${() => this._navigateToUrl('/results')}"
+            >Results</mwc-list-item
+          >
+        </mwc-list>
+        <div slot="appContent">
+          <mwc-top-app-bar>
+            <mwc-icon-button
+              icon="menu"
+              slot="navigationIcon"
+              @click="${() => {
+                this.showSidebar = !this.showSidebar;
+              }}"
+            ></mwc-icon-button>
+            <div slot="title">Title</div>
+          </mwc-top-app-bar>
+          <main>${this._renderCurrentView()}</main>
+        </div>
+      </mwc-drawer>
     `;
   }
 }
+
+customElements.define('amenity-finder', AmenityFinder);
