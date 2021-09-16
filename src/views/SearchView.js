@@ -1,4 +1,4 @@
-import { html, LitElement } from 'lit';
+import { css, html, LitElement } from 'lit';
 import { canGeolocate, detectUserLocation } from '../utils/geolocation.js';
 
 import '@material/mwc-button';
@@ -12,6 +12,31 @@ export class SearchView extends LitElement {
       longitude: { type: String },
       radius: { type: Number },
     };
+  }
+
+  static get styles() {
+    return css`
+      :host {
+        --amenity-search-form-spacing: 1rem;
+
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      leaflet-map {
+        flex: 1;
+
+        /* stretch to edges */
+        margin-left: calc(var(--amenity-container-padding) * -1);
+        margin-right: calc(var(--amenity-container-padding) * -1);
+        margin-bottom: calc(var(--amenity-container-padding) * -1);
+      }
+
+      .search-form {
+        margin-bottom: 1rem;
+      }
+    `;
   }
 
   _triggerSearch() {
