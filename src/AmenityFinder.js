@@ -16,9 +16,18 @@ export class AmenityFinder extends LitElement {
     super();
     this.showSidebar = false;
     this.currentView = 'home';
+    this.latitude = '47.3902';
+    this.longitude = '8.5158';
+    this.radius = 1000;
+
     this.views = {
       home: html`<home-view></home-view>`,
-      search: html`<search-view></search-view>`,
+      search: html` <search-view
+        .latitude="${this.latitude}"
+        .longitude="${this.longitude}"
+        .radius="${this.radius}"
+        @execute-search="${event => this._onExecuteSearch(event)}"
+      ></search-view>`,
       results: html`<results-view></results-view>`,
     };
 
@@ -30,6 +39,9 @@ export class AmenityFinder extends LitElement {
       showSidebar: { type: Boolean },
       currentView: { type: String },
       views: { type: Object },
+      latitude: { type: String },
+      longitude: { type: String },
+      radius: { type: Number },
     };
   }
 
@@ -58,7 +70,8 @@ export class AmenityFinder extends LitElement {
     page('/', () => {
       this.currentView = 'home';
     });
-    page('/results', () => {
+    page('/results/:lat/:lon/:radius', ctx => {
+      this._setSearchParametersFromRouteContext(ctx);
       this.currentView = 'results';
     });
     page('/search', () => {
@@ -67,7 +80,6 @@ export class AmenityFinder extends LitElement {
     page();
   }
 
-  // eslint-disable-next-line class-methods-use-this
   _navigateToUrl(url) {
     page(url);
     this._closeSidebar();
@@ -75,6 +87,27 @@ export class AmenityFinder extends LitElement {
 
   _closeSidebar() {
     this.showSidebar = false;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  _onExecuteSearch(event) {
+    page(
+      `/results/${event.detail.latitude}/${event.detail.longitude}/${event.detail.radius}`
+    );
+  }
+
+  _setSearchParametersFromRouteContext(ctx) {
+    const {
+      params: { radius, lat, lon },
+    } = ctx;
+
+    if (!radius || !lat || !lon) {
+      return;
+    }
+
+    this.radius = radius;
+    this.latitude = lat;
+    this.longitude = lon;
   }
 
   render() {
@@ -104,9 +137,7 @@ export class AmenityFinder extends LitElement {
             <mwc-icon-button
               icon="menu"
               slot="navigationIcon"
-              @click="${() => {
-                this.showSidebar = !this.showSidebar;
-              }}"
+              @click="${() => (this.showSidebar = !this.showSidebar)}"
             ></mwc-icon-button>
             <div slot="title">Title</div>
           </mwc-top-app-bar>

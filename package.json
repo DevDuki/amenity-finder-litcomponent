@@ -38,7 +38,19 @@
     "extends": [
       "@open-wc",
       "prettier"
-    ]
+    ],
+    "rules": {
+      "no-return-assign": "off",
+      "no-console": [
+        "error",
+        {
+          "allow": [
+            "info",
+            "error"
+          ]
+        }
+      ]
+    }
   },
   "prettier": {
     "singleQuote": true,
@@ -57,9 +69,12 @@
   },
   "customElements": "custom-elements.json",
   "dependencies": {
+    "@inventage/leaflet-map": "^0.8.0",
+    "@material/mwc-button": "^0.23.0",
     "@material/mwc-drawer": "^0.23.0",
     "@material/mwc-icon-button": "^0.23.0",
     "@material/mwc-list": "^0.23.0",
+    "@material/mwc-textfield": "^0.23.0",
     "@material/mwc-top-app-bar": "^0.23.0",
     "lit": "^2.0.0-rc.4",
     "lit-html": "^1.4.1",
