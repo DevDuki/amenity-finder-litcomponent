@@ -4,13 +4,12 @@ import { distanceBetween } from '../utils/geolocation.js';
 import '../components/AmenityBrowser.js';
 import '../components/AmenityItem.js';
 
-import { OverpassApi } from '../services/OverpassApi.js';
+import { Requester } from '../mixins/RequesterMixin.js';
 
-export class ResultsView extends LitElement {
+export class ResultsView extends Requester(LitElement) {
   constructor() {
     super();
 
-    this.api = new OverpassApi();
     this.results = [];
   }
 
@@ -44,8 +43,13 @@ export class ResultsView extends LitElement {
     `;
   }
 
-  async connectedCallback() {
+  connectedCallback() {
     super.connectedCallback();
+    this.api = this.requestInstance('api');
+  }
+
+  async firstUpdated(changedProperties) {
+    super.firstUpdated(changedProperties);
     await this._fetchResults();
   }
 

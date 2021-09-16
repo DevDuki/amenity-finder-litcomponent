@@ -123,6 +123,17 @@ export class SearchView extends LitElement {
         .radius="${this.radius}"
         @center-updated="${this._updateLatitudeLongitudeFromMap}"
         updateCenterOnClick
+        @tiles-loading="${e => {
+          this.dispatchEvent(
+            new CustomEvent('pending-state', {
+              composed: true,
+              bubbles: true,
+              detail: {
+                promise: e.detail.promise,
+              },
+            })
+          );
+        }}"
       ></leaflet-map>
     `;
   }

@@ -6,12 +6,14 @@ import '@material/mwc-top-app-bar';
 import '@material/mwc-list/mwc-list.js';
 import '@material/mwc-list/mwc-check-list-item.js';
 import '@material/mwc-icon-button';
+import '@material/mwc-linear-progress';
 
-import './views/HomeView.js';
-import './views/SearchView.js';
-import './views/ResultsView.js';
+import { lazyLoad } from './directives/lazyLoadDirective.js';
+import { Provider } from './mixins/ProviderMixin.js';
+import { PendingContainer } from './mixins/PendingContainerMixin.js';
+import { OverpassApi } from './services/OverpassApi.js';
 
-export class AmenityFinder extends LitElement {
+export class AmenityFinder extends PendingContainer(Provider(LitElement)) {
   constructor() {
     super();
     this.showSidebar = false;
@@ -22,6 +24,9 @@ export class AmenityFinder extends LitElement {
     this.alreadySearched = false;
 
     this._initializeRoutes();
+
+    // Provide Instances
+    this.provideInstance('api', new OverpassApi());
   }
 
   static get properties() {
@@ -59,6 +64,14 @@ export class AmenityFinder extends LitElement {
         z-index: 1;
         position: relative;
       }
+
+      mwc-linear-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+      }
     `;
   }
 
@@ -69,25 +82,34 @@ export class AmenityFinder extends LitElement {
 
   _getViews() {
     return {
-      home: html`<home-view></home-view>`,
-      search: html` <search-view
-        .latitude="${this.latitude}"
-        .longitude="${this.longitude}"
-        .radius="${this.radius}"
-        @execute-search="${event => this._onExecuteSearch(event)}"
-      ></search-view>`,
-      results: html`<results-view
-        .latitude="${this.latitude}"
-        .longitude="${this.longitude}"
-        .radius="${this.radius}"
-      >
-        <p>
-          <a
-            href="${`/search/${this.latitude}/${this.longitude}/${this.radius}`}"
-            >← Back to search</a
-          >
-        </p>
-      </results-view>`,
+      home: lazyLoad(
+        import('./views/HomeView.js'),
+        html`<home-view></home-view>`
+      ),
+      search: lazyLoad(
+        import('./views/SearchView.js'),
+        html` <search-view
+          .latitude="${this.latitude}"
+          .longitude="${this.longitude}"
+          .radius="${this.radius}"
+          @execute-search="${event => this._onExecuteSearch(event)}"
+        ></search-view>`
+      ),
+      results: lazyLoad(
+        import('./views/ResultsView.js'),
+        html`<results-view
+          .latitude="${this.latitude}"
+          .longitude="${this.longitude}"
+          .radius="${this.radius}"
+        >
+          <p>
+            <a
+              href="${`/search/${this.latitude}/${this.longitude}/${this.radius}`}"
+              >← Back to search</a
+            >
+          </p>
+        </results-view>`
+      ),
     };
   }
 
@@ -164,6 +186,10 @@ export class AmenityFinder extends LitElement {
 
   render() {
     return html`
+      <mwc-linear-progress
+        indeterminate
+        .closed="${!this.__hasPendingChildren}"
+      ></mwc-linear-progress>
       <mwc-drawer
         hasHeader
         type="modal"
